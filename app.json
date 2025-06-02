@@ -1,0 +1,25 @@
+{
+  "name": "User Info Bot",
+  "description": "Telegram bot to get user/channel/bot ID and resolve @username to ID.",
+  "repository": "https://github.com/your-username/user-info-bot",
+  "keywords": ["telegram", "bot", "python", "user-info", "id"],
+  "env": {
+    "BOT_TOKEN": {
+      "description": "Telegram Bot Token from @BotFather",
+      "required": true
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [],
+  "stack": "heroku-22"
+}
