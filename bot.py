@@ -1,9 +1,15 @@
 import os
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import logging
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
 
-# Logging
+# Enable logging
 logging.basicConfig(level=logging.INFO)
 
 # /start command
@@ -33,7 +39,7 @@ async def get_id_by_username(update: Update, context: ContextTypes.DEFAULT_TYPE)
     except Exception as e:
         await update.message.reply_text(f"⚠️ Could not fetch ID. Reason:\n{e}")
 
-# Forwarded message handler
+# Handler for forwarded messages
 async def forwarded(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     fwd = msg.forward_from or msg.forward_from_chat
@@ -71,7 +77,11 @@ async def main():
     print("✅ Bot is running...")
     await app.run_polling()
 
-# Run the bot
+# Entry point
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(main())
+
+    try:
+        asyncio.get_event_loop().run_until_complete(main())
+    except KeyboardInterrupt:
+        pass
