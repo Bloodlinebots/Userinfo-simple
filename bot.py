@@ -9,10 +9,10 @@ from telegram.ext import (
     filters,
 )
 
-# Enable logging
+# Logging
 logging.basicConfig(level=logging.INFO)
 
-# /start command
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     msg = (
@@ -23,10 +23,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(msg, parse_mode="Markdown")
 
-# /id command with @username
+# /id
 async def get_id_by_username(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text("❌ Please provide a username. Example:\n`/id @username`", parse_mode="Markdown")
+        await update.message.reply_text("❌ Provide a username. Example:\n`/id @username`", parse_mode="Markdown")
         return
 
     username = context.args[0].lstrip('@')
@@ -39,7 +39,7 @@ async def get_id_by_username(update: Update, context: ContextTypes.DEFAULT_TYPE)
     except Exception as e:
         await update.message.reply_text(f"⚠️ Could not fetch ID. Reason:\n{e}")
 
-# Handler for forwarded messages
+# Forward handler
 async def forwarded(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     fwd = msg.forward_from or msg.forward_from_chat
@@ -61,8 +61,8 @@ async def forwarded(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-# Main function
-async def main():
+# Run the bot (no asyncio.run)
+def run_bot():
     token = os.environ.get("BOT_TOKEN")
     if not token:
         print("❌ BOT_TOKEN not set.")
@@ -75,13 +75,8 @@ async def main():
     app.add_handler(MessageHandler(filters.FORWARDED, forwarded))
 
     print("✅ Bot is running...")
-    await app.run_polling()
+    app.run_polling()
 
 # Entry point
 if __name__ == "__main__":
-    import asyncio
-
-    try:
-        asyncio.get_event_loop().run_until_complete(main())
-    except KeyboardInterrupt:
-        pass
+    run_bot()
