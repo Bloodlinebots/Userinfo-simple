@@ -9,21 +9,14 @@ from telegram.ext import (
     filters,
 )
 
-# Logging
+# Logging setup
 logging.basicConfig(level=logging.INFO)
 
-# /start
+# /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    msg = (
-        f"👤 Your Info:\n\n"
-        f"🪪 Name: {user.full_name}\n"
-        f"💬 Username: @{user.username if user.username else 'N/A'}\n"
-        f"🆔 User ID: `{user.id}`"
-    )
-    await update.message.reply_text(msg, parse_mode="Markdown")
+    await show_user_info(update)
 
-# /id
+# /id command
 async def get_id_by_username(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text("❌ Provide a username. Example:\n`/id @username`", parse_mode="Markdown")
@@ -32,14 +25,19 @@ async def get_id_by_username(update: Update, context: ContextTypes.DEFAULT_TYPE)
     username = context.args[0].lstrip('@')
     try:
         user = await context.bot.get_chat(f"@{username}")
-        name = user.full_name
+        name = user.full_name if hasattr(user, 'full_name') else user.title
         uid = user.id
-        typ = "Bot" if user.is_bot else "User"
-        await update.message.reply_text(f"👤 {typ} Info:\n\n🪪 Name: {name}\n🆔 ID: `{uid}`", parse_mode="Markdown")
+        typ = "Bot" if getattr(user, 'is_bot', False) else "User"
+        await update.message.reply_text(
+            f"👤 {typ} Info:\n\n"
+            f"🪪 Name: {name}\n"
+            f"🆔 ID: `{uid}`",
+            parse_mode="Markdown"
+        )
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Could not fetch ID. Reason:\n{e}")
+        await update.message.reply_text(f"⚠️ Could not fetch ID. Reason:\n`{e}`", parse_mode="Markdown")
 
-# Forward handler
+# Forwarded messages handler
 async def forwarded(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     fwd = msg.forward_from or msg.forward_from_chat
@@ -61,7 +59,22 @@ async def forwarded(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-# Run the bot (no asyncio.run)
+# Any message handler: show user info
+async def any_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await show_user_info(update)
+
+# Reusable function to show user info
+async def show_user_info(update: Update):
+    user = update.effective_user
+    msg = (
+        f"👤 Your Info:\n\n"
+        f"🪪 Name: {user.full_name}\n"
+        f"💬 Username: @{user.username if user.username else 'N/A'}\n"
+        f"🆔 User ID: `{user.id}`"
+    )
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
+# Run the bot
 def run_bot():
     token = os.environ.get("BOT_TOKEN")
     if not token:
@@ -73,10 +86,10 @@ def run_bot():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("id", get_id_by_username))
     app.add_handler(MessageHandler(filters.FORWARDED, forwarded))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, any_message))
 
     print("✅ Bot is running...")
     app.run_polling()
 
-# Entry point
 if __name__ == "__main__":
     run_bot()
